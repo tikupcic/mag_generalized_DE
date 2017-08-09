@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(generalized_robot)
+project(mag_generalized_DE)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -16,6 +16,8 @@ set(SOURCE_FILES
         utils/Trigonometry.h
         utils/VectorOperations.cpp
         utils/VectorOperations.h
+        utils/TestingMatricesUtils.cpp
+        utils/TestingMatricesUtils.h
         main.cpp)
 
-add_executable(generalized_robot ${SOURCE_FILES})
+add_executable(mag_generalized_DE ${SOURCE_FILES})
