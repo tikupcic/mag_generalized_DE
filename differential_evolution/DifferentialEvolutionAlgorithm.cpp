@@ -12,14 +12,18 @@
 
 
 // CONSTRUCTOR
-DifferentialEvolutionAlgorithm::DifferentialEvolutionAlgorithm(Robot robot, const int POPULATION_SIZE, const int MAX_GENERATION,
-                         const float CROSSOVER_RATE, const float MUTATION_FACTOR, const bool considerErrors) :
+DifferentialEvolutionAlgorithm::DifferentialEvolutionAlgorithm(Robot robot, const int POPULATION_SIZE,
+                                                               const int MAX_GENERATION, const float CROSSOVER_RATE,
+                                                               const float MUTATION_FACTOR, const float errorThreshold,
+                                                               const int stuckAtMinimum, const bool considerErrors) :
         ROBOT(robot),
         POPULATION_SIZE(POPULATION_SIZE),
         MAX_GENERATION(MAX_GENERATION),
         DIMENSION(ROBOT.getDimension()),
         CROSSOVER_RATE(CROSSOVER_RATE),
         MUTATION_FACTOR(MUTATION_FACTOR),
+        errorThreshold(errorThreshold),
+        stuckAtMinimum(stuckAtMinimum),
         considerErrors(considerErrors) {
 
     for (auto &arm: ROBOT.getArms()) {
@@ -48,6 +52,7 @@ void DifferentialEvolutionAlgorithm::initialize() {
     }
 
     bestIndividualFitness = std::numeric_limits<float>::max();
+    stuckAtMinimumCounter = 0;
 }
 
 std::vector<float> DifferentialEvolutionAlgorithm::begin(std::vector<float> wantedEndpoint) {
@@ -93,18 +98,33 @@ std::vector<float> DifferentialEvolutionAlgorithm::begin(std::vector<float> want
         }
 
         //selection
+        bool foundBetter = false;
         for (int i = 0; i < POPULATION_SIZE; i++) {
-            float trial = considerErrors ? pairwiseFitnessFunction(trial_vectors[i]) : fitnessFunction(trial_vectors[i]);
+            float trial = considerErrors ? pairwiseFitnessFunction(trial_vectors[i]) : fitnessFunction(
+                    trial_vectors[i]);
             float parent = considerErrors ? pairwiseFitnessFunction(population[i]) : fitnessFunction(population[i]);
             if (trial <= parent) {
                 std::swap(population[i], trial_vectors[i]);
                 if (trial < bestIndividualFitness) {
                     bestIndividualFitness = trial;
                     bestIndividual = population[i];
+                    foundBetter = true;
                 }
             }
         }
-        printf("\t> Current best (gen %d): %.2f mm\n", generation, bestIndividualFitness);
+
+        if (foundBetter) {
+            if (bestIndividualFitness < errorThreshold) {
+                break;
+            }
+            stuckAtMinimumCounter = 0;
+        } else {
+            if (stuckAtMinimumCounter++ >= stuckAtMinimum) {
+                break;
+            }
+        }
+
+//        printf("\t> Current best (gen %d): %.2f mm\n", generation, bestIndividualFitness);
     }
 
     return bestIndividual;

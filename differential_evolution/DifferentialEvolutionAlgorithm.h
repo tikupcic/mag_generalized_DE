@@ -21,6 +21,9 @@ private:
 
     const float considerErrors;
 
+    const float errorThreshold;
+    const int stuckAtMinimum;
+
     std::vector<float> min_bounds;
     std::vector<float> max_bounds;
 
@@ -36,6 +39,8 @@ private:
     float bestIndividualFitness;
     std::vector<float> bestIndividual;
 
+    int stuckAtMinimumCounter;
+
 public:
     DifferentialEvolutionAlgorithm(
             Robot robot,
@@ -43,13 +48,15 @@ public:
             const int MAX_GENERATION,
             const float CROSSOVER_RATE,
             const float MUTATION_FACTOR,
+            const float errorThreshold,
+            const int stuckAtMinimum,
             const bool considerErrors);
 
     float setInitialIndividualValue(const int index);
 
-    static float fitnessFunction(std::vector<float> vector);
+    float fitnessFunction(std::vector<float> vector);
 
-    static float pairwiseFitnessFunction(std::vector<float> vector);
+    float pairwiseFitnessFunction(std::vector<float> vector);
 
     void initialize();
 
