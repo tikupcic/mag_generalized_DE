@@ -8,7 +8,7 @@
 #include <vector>
 
 // Class containing All-Pairs testing matrices for number of various number of parameters
-class AllPairsTestingMatrices {
+class TestingMatricesUtils {
 
 public:
     static std::vector<std::vector<float>> getAllPairsMatrix(const int numberOfParameters);

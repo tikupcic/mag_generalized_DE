@@ -4,7 +4,7 @@
 
 #include "TestingMatricesUtils.h"
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getAllPairsMatrix(const int numberOfParameters) {
+std::vector<std::vector<float>> TestingMatricesUtils::getAllPairsMatrix(const int numberOfParameters) {
     switch (numberOfParameters) {
         case 2:
             return getP2Matrix();
@@ -31,21 +31,21 @@ std::vector<std::vector<float>> AllPairsTestingMatrices::getAllPairsMatrix(const
     }
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP2Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP2Matrix() {
     return std::vector<std::vector<float>> {{1,  -1},
                                             {1,  1},
                                             {-1, 1},
                                             {-1, -1}};
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP3Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP3Matrix() {
     return std::vector<std::vector<float>> {{1,  -1, 1},
                                             {1,  1,  -1},
                                             {-1, -1, -1},
                                             {-1, 1,  1}};
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP4Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP4Matrix() {
     return std::vector<std::vector<float>> {{-1, 1,  1,  1},
                                             {-1, -1, -1, -1},
                                             {1,  -1, 1,  -1},
@@ -53,7 +53,7 @@ std::vector<std::vector<float>> AllPairsTestingMatrices::getP4Matrix() {
                                             {1,  -1, -1, 1}};
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP5Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP5Matrix() {
     return std::vector<std::vector<float>> {{1,  1,  -1, -1, 1},
                                             {-1, -1, 1,  1,  -1},
                                             {1,  -1, 1,  1,  1},
@@ -63,7 +63,7 @@ std::vector<std::vector<float>> AllPairsTestingMatrices::getP5Matrix() {
                                             {-1, -1, -1, -1, -1}};
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP6Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP6Matrix() {
     return std::vector<std::vector<float>> {{1,  1,  -1, 1,  1,  1},
                                             {-1, -1, 1,  -1, -1, -1},
                                             {1,  -1, 1,  -1, 1,  1},
@@ -72,7 +72,7 @@ std::vector<std::vector<float>> AllPairsTestingMatrices::getP6Matrix() {
                                             {-1, 1,  -1, -1, -1, 1}};
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP7Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP7Matrix() {
     return std::vector<std::vector<float>> {{1,  1,  1,  -1, 1,  1,  1},
                                             {-1, -1, -1, -1, -1, -1, -1},
                                             {1,  1,  -1, 1,  1,  -1, -1},
@@ -82,7 +82,7 @@ std::vector<std::vector<float>> AllPairsTestingMatrices::getP7Matrix() {
                                             {-1, 1,  1,  -1, -1, -1, 1}};
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP8Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP8Matrix() {
     return std::vector<std::vector<float>> {{1,  1,  1,  -1, -1, -1, -1, 1},
                                             {-1, -1, -1, 1,  1,  1,  1,  1},
                                             {-1, 1,  -1, -1, 1,  -1, 1,  -1},
@@ -92,7 +92,7 @@ std::vector<std::vector<float>> AllPairsTestingMatrices::getP8Matrix() {
                                             {1,  1,  -1, 1,  1,  1,  -1, -1}};
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP9Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP9Matrix() {
     return std::vector<std::vector<float>> {{1,  -1, 1,  -1, 1,  1,  -1, 1,  1},
                                             {-1, 1,  -1, 1,  -1, -1, 1,  -1, -1},
                                             {-1, -1, -1, -1, -1, -1, -1, 1,  -1},
@@ -104,7 +104,7 @@ std::vector<std::vector<float>> AllPairsTestingMatrices::getP9Matrix() {
                                             {1,  1,  -1, 1,  1,  1,  -1, 1,  1}};
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP10Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP10Matrix() {
     return std::vector<std::vector<float>> {{1,  -1, 1,  -1, -1, -1, 1,  1,  -1, -1},
                                             {-1, 1,  -1, 1,  1,  1,  1,  -1, 1,  1},
                                             {-1, -1, -1, -1, 1,  1,  -1, -1, -1, -1},
@@ -116,7 +116,7 @@ std::vector<std::vector<float>> AllPairsTestingMatrices::getP10Matrix() {
                                             {-1, -1, -1, 1,  1,  -1, -1, 1,  1,  -1}};
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP11Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP11Matrix() {
     return std::vector<std::vector<float>> {{1,  -1, -1, -1, -1, -1, 1,  -1, 1,  1,  1},
                                             {-1, 1,  1,  1,  1,  1,  -1, -1, -1, -1, -1},
                                             {1,  1,  -1, 1,  -1, 1,  1,  1,  1,  -1, -1},
@@ -128,7 +128,7 @@ std::vector<std::vector<float>> AllPairsTestingMatrices::getP11Matrix() {
                                             {-1, -1, -1, 1,  -1, -1, 1,  1,  -1, 1,  1}};
 }
 
-std::vector<std::vector<float>> AllPairsTestingMatrices::getP12Matrix() {
+std::vector<std::vector<float>> TestingMatricesUtils::getP12Matrix() {
     return std::vector<std::vector<float>> {{-1, -1, 1,  1,  1,  1,  1,  -1, -1, 1,  -1, 1},
                                             {1,  1,  -1, -1, -1, -1, -1, 1,  -1, -1, 1,  -1},
                                             {-1, 1,  -1, -1, 1,  1,  -1, 1,  1,  1,  1,  1},

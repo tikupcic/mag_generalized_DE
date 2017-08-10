@@ -8,16 +8,18 @@
 #include <random>
 #include "../entities/Robot.h"
 
-class OptimizedDE {
+class DifferentialEvolutionAlgorithm {
 
 private:
-    Robot &ROBOT;
+    Robot ROBOT;
 
     const int POPULATION_SIZE;        // NP
     const int MAX_GENERATION;         // Gmax
     const int DIMENSION;              // D
     const float CROSSOVER_RATE;       // C
     const float MUTATION_FACTOR;      // F
+
+    const float considerErrors;
 
     std::vector<float> min_bounds;
     std::vector<float> max_bounds;
@@ -35,16 +37,23 @@ private:
     std::vector<float> bestIndividual;
 
 public:
-    OptimizedDE(Robot &robot, const int POPULATION_SIZE, const int MAX_GENERATION, const float CROSSOVER_RATE,
-                const float MUTATION_FACTOR);
+    DifferentialEvolutionAlgorithm(
+            Robot robot,
+            const int POPULATION_SIZE,
+            const int MAX_GENERATION,
+            const float CROSSOVER_RATE,
+            const float MUTATION_FACTOR,
+            const bool considerErrors);
 
     float setInitialIndividualValue(const int index);
 
-    float fitnessFunction(std::vector<float> vector);
+    static float fitnessFunction(std::vector<float> vector);
+
+    static float pairwiseFitnessFunction(std::vector<float> vector);
 
     void initialize();
 
-    void begin(std::vector<float> wantedEndpoint);
+    std::vector<float> begin(std::vector<float> wantedEndpoint);
 };
 
 #endif //MAG_DE_OPTIMIZEDDE_H

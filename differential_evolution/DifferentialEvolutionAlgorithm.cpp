@@ -6,19 +6,21 @@
 #include <iostream>
 #include "../entities/Robot.h"
 
-#include "OptimizedDE.h"
+#include "DifferentialEvolutionAlgorithm.h"
 #include "../utils/VectorOperations.h"
+#include "../utils/TestingMatricesUtils.h"
 
 
 // CONSTRUCTOR
-OptimizedDE::OptimizedDE(Robot &robot, const int POPULATION_SIZE, const int MAX_GENERATION,
-                         const float CROSSOVER_RATE, const float MUTATION_FACTOR) :
+DifferentialEvolutionAlgorithm::DifferentialEvolutionAlgorithm(Robot robot, const int POPULATION_SIZE, const int MAX_GENERATION,
+                         const float CROSSOVER_RATE, const float MUTATION_FACTOR, const bool considerErrors) :
         ROBOT(robot),
         POPULATION_SIZE(POPULATION_SIZE),
         MAX_GENERATION(MAX_GENERATION),
         DIMENSION(ROBOT.getDimension()),
         CROSSOVER_RATE(CROSSOVER_RATE),
-        MUTATION_FACTOR(MUTATION_FACTOR) {
+        MUTATION_FACTOR(MUTATION_FACTOR),
+        considerErrors(considerErrors) {
 
     for (auto &arm: ROBOT.getArms()) {
         min_bounds.push_back(arm.getMinAngle());
@@ -33,7 +35,7 @@ OptimizedDE::OptimizedDE(Robot &robot, const int POPULATION_SIZE, const int MAX_
 }
 
 // METHODS
-void OptimizedDE::initialize() {
+void DifferentialEvolutionAlgorithm::initialize() {
     population.clear();
 
     std::vector<float> temp;
@@ -48,7 +50,7 @@ void OptimizedDE::initialize() {
     bestIndividualFitness = std::numeric_limits<float>::max();
 }
 
-void OptimizedDE::begin(std::vector<float> wantedEndpoint) {
+std::vector<float> DifferentialEvolutionAlgorithm::begin(std::vector<float> wantedEndpoint) {
     this->wantedEndpoint = wantedEndpoint;
     initialize();
 
@@ -92,8 +94,8 @@ void OptimizedDE::begin(std::vector<float> wantedEndpoint) {
 
         //selection
         for (int i = 0; i < POPULATION_SIZE; i++) {
-            float trial = fitnessFunction(trial_vectors[i]);
-            float parent = fitnessFunction(population[i]);
+            float trial = considerErrors ? pairwiseFitnessFunction(trial_vectors[i]) : fitnessFunction(trial_vectors[i]);
+            float parent = considerErrors ? pairwiseFitnessFunction(population[i]) : fitnessFunction(population[i]);
             if (trial <= parent) {
                 std::swap(population[i], trial_vectors[i]);
                 if (trial < bestIndividualFitness) {
@@ -102,27 +104,24 @@ void OptimizedDE::begin(std::vector<float> wantedEndpoint) {
                 }
             }
         }
-        printf("\t\t> CURRENT (gen %d): %.2f mm\n", generation, bestIndividualFitness);
+        printf("\t> Current best (gen %d): %.2f mm\n", generation, bestIndividualFitness);
     }
-    printf("\t> BEST: %.2f mm\n", bestIndividualFitness);
 
-    for (int i = 0; i < ROBOT.getDimension(); i += 2) {
-        ROBOT.getArms()[i/2].setAngle(bestIndividual[i]);
-        ROBOT.getArms()[i/2].setLength(bestIndividual[i+1]);
-    }
+    return bestIndividual;
 }
 
-float OptimizedDE::setInitialIndividualValue(const int index) {
+float DifferentialEvolutionAlgorithm::setInitialIndividualValue(const int index) {
     return min_bounds[index] +
            (float) RANDOM_0_1(random_engine) *
            (max_bounds[index] - min_bounds[index]);
 }
 
-float OptimizedDE::fitnessFunction(std::vector<float> vector) {
+float DifferentialEvolutionAlgorithm::fitnessFunction(std::vector<float> vector) {
 
     std::vector<std::vector<float>> result = MatricesUtils::getIdentityMatrix();
     for (int i = 0; i < vector.size(); i += 2) {
-        result = MatricesUtils::multiply(result, ROBOT.getArms()[i / 2].getTransformationMatrix(vector[i], vector[i + 1]));
+        result = MatricesUtils::multiply(result,
+                                         ROBOT.getArms()[i / 2].getTransformationMatrix(vector[i], vector[i + 1]));
     }
     result = MatricesUtils::multiply(result, MatricesUtils::getOrigin());
 
@@ -131,4 +130,22 @@ float OptimizedDE::fitnessFunction(std::vector<float> vector) {
         sum += pow(result[i][0] - wantedEndpoint[i], 2);
     }
     return std::sqrt(sum);
+}
+
+float DifferentialEvolutionAlgorithm::pairwiseFitnessFunction(std::vector<float> vector) {
+    std::vector<std::vector<float>> pairwiseMatrix = TestingMatricesUtils::getAllPairsMatrix(ROBOT.getDimension() / 2);
+    std::vector<float> temp;
+    float errorSum = 0;
+    for (int i = 0; i < pairwiseMatrix.size(); i++) {
+        temp.clear();
+        for (int j = 0; j < vector.size(); j++) {
+            if (j % 2 == 0) {
+                temp.push_back(vector[j] + (vector[j] * ROBOT.getArms()[j / 2].getError() * pairwiseMatrix[i][j / 2]));
+            } else {
+                temp.push_back(vector[j]);
+            }
+        }
+        errorSum += fitnessFunction(temp);
+    }
+    return errorSum / pairwiseMatrix.size();
 }

@@ -9,37 +9,30 @@
 #include <vector>
 #include "../utils/MatricesUtils.h"
 
-class Arm {
+class ArmSegment {
 
 public: enum RotationOption { X_AXIS, Y_AXIS, Z_AXIS, NONE };
 
 private:
 
-    int index;
-
     float maxLength;
     float minLength;
-    float length;
 
     float maxAngle;
     float minAngle;
-    float angle;
+
+    float error;
 
     RotationOption rotationOption;
-    std::vector<std::vector<float>> transformationMatrix;
 
 public:
-    static int counter;
 
-    Arm(float maxLength, float minLength, float maxAngle, float minAngle, RotationOption rotationOption);
+    ArmSegment(float maxLength, float minLength, float maxAngle, float minAngle, float error,  RotationOption rotationOption);
+    ArmSegment(float length, float angle, float error, RotationOption rotationOption);
 
     std::vector<std::vector<float>> getRotationMatrix(const float angle);
     std::vector<std::vector<float>> getTranslationMatrix(const float length);
     std::vector<std::vector<float>> getTransformationMatrix(const float angle, const float length);
-
-    int getIndex() const;
-
-    void setIndex(int index);
 
     float getMaxLength() const;
 
@@ -49,13 +42,7 @@ public:
 
     float getMinAngle() const;
 
-    float getLength() const;
-
-    void setLength(float length);
-
-    float getAngle() const;
-
-    void setAngle(float angle);
+    float getError() const;
 };
 
 #endif //GENERALIZED_ROBOT_ARM_H

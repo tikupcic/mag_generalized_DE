@@ -4,12 +4,12 @@
 
 #include "Robot.h"
 
-Robot::Robot(const std::vector<Arm> &arms) : arms(arms) {}
+Robot::Robot(const std::vector<ArmSegment> &arms) : arms(arms) {}
 
 int Robot::getDimension() const {
     return arms.size()*2;
 }
 
-std::vector<Arm> &Robot::getArms() {
+std::vector<ArmSegment> &Robot::getArms() {
     return arms;
 }

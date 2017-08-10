@@ -6,19 +6,19 @@
 #define GENERALIZED_ROBOT_ROBOT_H
 
 
-#include "Arm.h"
+#include "ArmSegment.h"
 
 class Robot {
 
 private:
-    std::vector<Arm> arms;
+    std::vector<ArmSegment> arms;
 
 public:
-    Robot(const std::vector<Arm> &arms);
+    Robot(const std::vector<ArmSegment> &arms);
 
     int getDimension() const;
 
-    std::vector<Arm> &getArms();
+    std::vector<ArmSegment> &getArms();
 };
 
 
