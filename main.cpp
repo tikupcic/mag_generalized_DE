@@ -25,7 +25,7 @@
 
 int main() {
 
-    const int NUMBER_OF_RUNS = 10;
+    const int NUMBER_OF_RUNS = 1;
     float sumElapsed = 0;
     float sumError = 0;
     float sumPairWiseError = 0;
@@ -39,18 +39,18 @@ int main() {
     std::vector<ArmSegment> arms{segment1, segment2, segment3};
     Robot robot(arms);
 
-    DifferentialEvolutionAlgorithm algorithm(robot, 20, 500, .5f, .9f, 1, 100, false);
+    DifferentialEvolutionAlgorithm algorithm(robot, 10, 1000, .5f, .9f, false, 1337, 1, 5000, 10);
 
     for (int n = 0; n < NUMBER_OF_RUNS; n++) {
         clock_t begin = clock();
-        std::vector<float> result = algorithm.begin(endPoint);
+        std::vector<float> result = algorithm.begin(endPoint, n);
         clock_t end = clock();
 
         std::cout << "========================== Run: " << n + 1 << " ==========================" << std::endl;
 
-        float pairwiseError = algorithm.pairwiseFitnessFunction(result);
+        float pairwiseError = algorithm.pairwiseFitnessFunction(result, nullptr);
         double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-        float error = algorithm.fitnessFunction(result);
+        float error = algorithm.fitnessFunction(result, nullptr);
 
         sumPairWiseError += pairwiseError;
         sumElapsed += elapsed_secs;

@@ -19,10 +19,8 @@ private:
     const float CROSSOVER_RATE;       // C
     const float MUTATION_FACTOR;      // F
 
-    const float considerErrors;
-
-    const float errorThreshold;
-    const int stuckAtMinimum;
+    const bool considerErrors;
+    const unsigned long seed;
 
     std::vector<float> min_bounds;
     std::vector<float> max_bounds;
@@ -36,31 +34,29 @@ private:
     std::vector<std::vector<float>> trial_vectors;
     std::vector<float> wantedEndpoint;
 
-    float bestIndividualFitness;
     std::vector<float> bestIndividual;
 
-    int stuckAtMinimumCounter;
+    //termination variables
+    const float term_epsilonLimit;
+    const int term_cntProbeLimit;
+    const double term_runtimeLimit;
 
 public:
-    DifferentialEvolutionAlgorithm(
-            Robot robot,
-            const int POPULATION_SIZE,
-            const int MAX_GENERATION,
-            const float CROSSOVER_RATE,
-            const float MUTATION_FACTOR,
-            const float errorThreshold,
-            const int stuckAtMinimum,
-            const bool considerErrors);
+    DifferentialEvolutionAlgorithm(const Robot &ROBOT, const int POPULATION_SIZE, const int MAX_GENERATION, const float CROSSOVER_RATE, const float MUTATION_FACTOR,
+                                   const bool considerErrors, const unsigned long seed, const float term_epsilonLimit,
+                                   const int term_cntProbeLimit, const double term_runtimeLimit);
 
     float setInitialIndividualValue(const int index);
 
-    float fitnessFunction(std::vector<float> vector);
+    float fitnessFunction(std::vector<float> vector, int *cntProbe);
 
-    float pairwiseFitnessFunction(std::vector<float> vector);
+    float pairwiseFitnessFunction(std::vector<float> vector, int *cntProbe);
 
-    void initialize();
+    void initialize(const int runNumber);
 
-    std::vector<float> begin(std::vector<float> wantedEndpoint);
+    bool shouldTerminate(int generation, float epsilon, clock_t runtime, int cntProbe);
+
+    std::vector<float> begin(std::vector<float> wantedEndpoint, const int runNumber);
 };
 
 #endif //MAG_DE_OPTIMIZEDDE_H
