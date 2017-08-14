@@ -17,7 +17,8 @@ DifferentialEvolutionAlgorithm::DifferentialEvolutionAlgorithm(const Robot &ROBO
                                                                const int MAX_GENERATION,const float CROSSOVER_RATE,
                                                                const float MUTATION_FACTOR, const bool considerErrors,
                                                                const unsigned long seed, const float term_epsilonLimit,
-                                                               const int term_cntProbeLimit, const double term_runtimeLimit) :
+                                                               const int term_cntProbeLimit, const double term_runtimeLimit,
+                                                               const bool debugMode) :
         ROBOT(ROBOT),
         POPULATION_SIZE(POPULATION_SIZE),
         MAX_GENERATION(MAX_GENERATION),
@@ -28,7 +29,8 @@ DifferentialEvolutionAlgorithm::DifferentialEvolutionAlgorithm(const Robot &ROBO
         seed(seed),
         term_epsilonLimit(term_epsilonLimit),
         term_cntProbeLimit(term_cntProbeLimit),
-        term_runtimeLimit(term_runtimeLimit) {
+        term_runtimeLimit(term_runtimeLimit),
+        debugMode(debugMode){
 
     for (auto &arm: this->ROBOT.getArms()) {
         min_bounds.push_back(arm.getMinAngle());
@@ -116,7 +118,8 @@ std::vector<float> DifferentialEvolutionAlgorithm::begin(std::vector<float> want
             }
         }
 
-        printf("\t> Current best: %.2f mm {gen: %d, time: %.2f, cntProbe: %d}\n", epsilon, generation, double(clock() - runtime) / CLOCKS_PER_SEC, cntProbe);
+        if(debugMode)
+            printf("\t> Current best: %.2f mm {gen: %d, time: %.2f, cntProbe: %d}\n", epsilon, generation, double(clock() - runtime) / CLOCKS_PER_SEC, cntProbe);
 
         //termination
         if(shouldTerminate(generation, epsilon, runtime, cntProbe)) {

@@ -20,6 +20,7 @@ private:
     const float MUTATION_FACTOR;      // F
 
     const bool considerErrors;
+    const bool debugMode;
     const unsigned long seed;
 
     std::vector<float> min_bounds;
@@ -44,7 +45,7 @@ private:
 public:
     DifferentialEvolutionAlgorithm(const Robot &ROBOT, const int POPULATION_SIZE, const int MAX_GENERATION, const float CROSSOVER_RATE, const float MUTATION_FACTOR,
                                    const bool considerErrors, const unsigned long seed, const float term_epsilonLimit,
-                                   const int term_cntProbeLimit, const double term_runtimeLimit);
+                                   const int term_cntProbeLimit, const double term_runtimeLimit, const bool debugMode);
 
     float setInitialIndividualValue(const int index);
 
