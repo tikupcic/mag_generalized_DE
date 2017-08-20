@@ -7,6 +7,7 @@
 #include "utils/arguments/Argument.h"
 #include <typeinfo>
 #include <fstream>
+#include <iomanip>
 
 /******************** ORIENTATION ********************/
 /*                                                   */
@@ -33,18 +34,18 @@ Argument<bool>            DEBUG("-d", "Run as debug version (inner steps of algo
 Argument<bool>            CONSIDER_ERRORS("-e", "Run in error mode.");
 
 // FILES
-Argument<std::string>     ROBOT("--robot", "Load a file containing robot arm parameters (check example file for more info).");
-Argument<std::string>     ENDPOINT("--endpoint", "Load a file with wanted endpoint (check example file for more info).");
+Argument<std::string>     ROBOT_CONF("--robot", "Load a file containing robot arm parameters (check example file for more info).");
+Argument<std::string>     ENDPOINT_CONF("--endpoint", "Load a file with wanted endpoint (check example file for more info).");
 
 // PARAMETERS
 Argument<int>             NUMBER_OF_RUNS("--runs", "Number of individual runs for current robot. (integer)", 1);
-Argument<int>             POPULATION_SIZE("--psize", "Set population size. (integer)", 15);
+Argument<int>             POPULATION_SIZE("--psize", "Set population size. (integer)", 100);
 Argument<int>             MAX_GENERATION("--Gmax", "Set maximum number of generations.(integer)", 1000);
 Argument<float>           MUTATION_FACTOR("--F", "Set mutation factor. (decimal)", .5f);
 Argument<float>           CROSSOVER_RATE("--C", "Set crossover rate. (decimal)", .9f);
-Argument<unsigned long>   SEED("--seed", "Set seed. (unsigned integer)", 35675);
-Argument<float>           EPSILON_LIMIT("--elim", "Set eplison limit in millimeters (algorithm will terminate if reached). (decimal)", 3.5f);
-Argument<int>             CNT_PROBE_LIMIT("--plim", "Set probe limit (algorithm will terminate if reached). (integer)", 10000);
+Argument<unsigned long>   SEED("--seed", "Set seed. (unsigned integer)", 4564);
+Argument<float>           EPSILON_LIMIT("--elim", "Set eplison limit in millimeters (algorithm will terminate if reached). (decimal)", 1.0f);
+Argument<int>             CNT_PROBE_LIMIT("--plim", "Set probe limit (algorithm will terminate if reached). (integer)", 20000);
 Argument<double>          TIME_LIMIT("--tlim", "Set time limit in seconds (algorithm will terminate if reached). (decimal)", 10);
 
 void showHelp();
@@ -58,10 +59,9 @@ int main(const int argc, const char* argv[]) {
     argh::parser argParser;
     argParser.parse(argc, argv, argh::parser::SINGLE_DASH_IS_MULTIFLAG);
 
-    // check if should show help
-    if (argc <= 3 || argParser[HELP.getArgument()]) {
+    // check if help should be shown
+    if (argc <= 1 || argParser[HELP.getArgument()] || !argParser(ROBOT_CONF.getArgument()) || !argParser(ENDPOINT_CONF.getArgument())) {
         showHelp();
-        exit(0);
     }
 
     // check for flags
@@ -70,14 +70,14 @@ int main(const int argc, const char* argv[]) {
 
     // load robot from file
     std::vector<ArmSegment> arms;
-    argParser(ROBOT.getArgument()) >> ROBOT.value;
-    loadRobot(ROBOT.value, arms);
+    argParser(ROBOT_CONF.getArgument()) >> ROBOT_CONF.value;
+    loadRobot(ROBOT_CONF.value, arms);
     Robot ROBOT(arms);
 
     // load endpoint from file
     std::vector<float> endPoint;
-    argParser(ENDPOINT.getArgument()) >> ENDPOINT.value;
-    loadEndpoint(ENDPOINT.value, endPoint);
+    argParser(ENDPOINT_CONF.getArgument()) >> ENDPOINT_CONF.value;
+    loadEndpoint(ENDPOINT_CONF.value, endPoint);
 
     // check for values
     argParser(NUMBER_OF_RUNS.getArgument(), NUMBER_OF_RUNS.getDefValue()) >> NUMBER_OF_RUNS.value;
@@ -156,17 +156,14 @@ int main(const int argc, const char* argv[]) {
     std::cout << std::endl <<  "=============== OVERALL BEST INDIVIDUAL RESULTS ===============" << std::endl;
     printResults(overallBestError, overallBestPairwiseError, overallBestElapsed);
 
-    printf("> Run best w/o error: %.2f mm\n", overallBestError);
-    printf("> Run best w/  error: %.2f mm\n", overallBestPairwiseError);
-    printf("> Run elapsed time:   %.5f sec\n", overallBestElapsed);
-
-    std::string raw = "";
+    std::stringstream raw;
     for (int i = 0; i < overallBestIndividual.size(); i += 2) {
         printf("\n Segment %d : %.2f° / %.2f mm", i / 2 + 1, overallBestIndividual[i], overallBestIndividual[i + 1]);
 
-        raw += std::to_string(overallBestIndividual[i]) + "f," + std::to_string(overallBestIndividual[i + 1]) + "f,";
+        raw << std::fixed << std::setprecision(2) << overallBestIndividual[i] << "," ;
+        raw << std::fixed << std::setprecision(2) << overallBestIndividual[i+1] << "," ;
     }
-    std::cout << std::endl << std::endl << "raw data: " << raw << std::endl << std::endl;
+    std::cout << std::endl << std::endl << "raw data: " << raw.str() << std::endl << std::endl;
 
     return 0;
 }
@@ -174,17 +171,16 @@ int main(const int argc, const char* argv[]) {
 void showHelp() {
 
     std::cout << "============== <HELP> ==============" << std::endl;
-    std::cout << "Defaults (if any) are listed in brackets []" << std::endl;
-
-    std::cout << HELP.getArgument()             << " ~ " <<   HELP.getDescription() << std::endl;
+    std::cout << "Mandatory arguments are marked with *" << std::endl;
+    std::cout << "Defaults (if any) are listed in brackets []" << std::endl << std::endl;
 
     std::cout << "Flags:" << std::endl;
     std::cout << "\t" << DEBUG.getArgument()            << " ~ " <<   DEBUG.getDescription()  << std::endl;
     std::cout << "\t" << CONSIDER_ERRORS.getArgument()  << " ~ " <<   CONSIDER_ERRORS.getDescription()  << std::endl;
 
     std::cout << "Files:" << std::endl;
-    std::cout << "\t" << ROBOT.getArgument()            << " ~ " <<   ROBOT.getDescription() << std::endl;
-    std::cout << "\t" << ENDPOINT.getArgument()         << " ~ " <<   ENDPOINT.getDescription() << std::endl;
+    std::cout << "\t* " << ROBOT_CONF.getArgument()            << " ~ " <<   ROBOT_CONF.getDescription() << std::endl;
+    std::cout << "\t* " << ENDPOINT_CONF.getArgument()         << " ~ " <<   ENDPOINT_CONF.getDescription() << std::endl;
 
     std::cout << "Params:" << std::endl;
     std::cout << "\t" << NUMBER_OF_RUNS.getArgument()   << " ~ " <<   NUMBER_OF_RUNS.getDescription()   <<      NUMBER_OF_RUNS.defToString() << std::endl;
@@ -198,6 +194,7 @@ void showHelp() {
     std::cout << "\t" << TIME_LIMIT.getArgument()       << " ~ " <<   TIME_LIMIT.getDescription()       <<      TIME_LIMIT.defToString() << std::endl;
 
     std::cout << "============== </HELP> ==============" << std::endl;
+    exit(0);
 }
 
 void loadRobot(const std::string &fileName, std::vector<ArmSegment> &arms) {
