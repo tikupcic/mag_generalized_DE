@@ -31,28 +31,28 @@
 // FLAGS
 Argument<bool>            HELP("-h", "Shows help.");
 Argument<bool>            DEBUG("-d", "Run as debug version (inner steps of algorithm are shown).");
-Argument<bool>            CONSIDER_ERRORS("-e", "Run in error mode.");
 
 // FILES
 Argument<std::string>     ROBOT_CONF("--robot", "Load a file containing robot arm parameters (check example file for more info).");
 Argument<std::string>     ENDPOINT_CONF("--endpoint", "Load a file with wanted endpoint (check example file for more info).");
 
 // PARAMETERS
-Argument<int>             NUMBER_OF_RUNS("--runs", "Number of individual runs for current robot. (integer)", 1);
+Argument<int>             NUMBER_OF_RUNS("--runs", "Number of individual runs for current robot. (integer)", 100);
 Argument<int>             POPULATION_SIZE("--psize", "Set population size. (integer)", 100);
 Argument<int>             MAX_GENERATION("--Gmax", "Set maximum number of generations.(integer)", 1000);
 Argument<float>           MUTATION_FACTOR("--F", "Set mutation factor. (decimal)", .5f);
 Argument<float>           CROSSOVER_RATE("--C", "Set crossover rate. (decimal)", .9f);
-Argument<unsigned long>   SEED("--seed", "Set seed. (unsigned integer)", 4564);
+Argument<unsigned long>   SEED("--seed", "Set seed. (unsigned integer)", 1500);
 Argument<float>           EPSILON_LIMIT("--elim", "Set eplison limit in millimeters (algorithm will terminate if reached). (decimal)", 1.0f);
-Argument<int>             CNT_PROBE_LIMIT("--plim", "Set probe limit (algorithm will terminate if reached). (integer)", 20000);
-Argument<double>          TIME_LIMIT("--tlim", "Set time limit in seconds (algorithm will terminate if reached). (decimal)", 10);
+Argument<int>             CNT_PROBE_LIMIT("--plim", "Set probe limit (algorithm will terminate if reached). (integer)", 100000);
+Argument<double>          TIME_LIMIT("--tlim", "Set time limit in seconds (algorithm will terminate if reached). (decimal)", 0);
 
 void showHelp();
 void loadRobot(const std::string &fileName, std::vector<ArmSegment> &arms);
 void loadEndpoint(const std::string &fileName, std::vector<float> &endpoint);
 ArmSegment createSegment(std::vector<std::string> params);
 ArmSegment::RotationOption parseRotation(const std::string param);
+void startExperiment(DifferentialEvolutionAlgorithm algorithm);
 void printResults(const float &error, const float &pairwiseError, const double &elapsed);
 
 int main(const int argc, const char* argv[]) {
@@ -66,7 +66,6 @@ int main(const int argc, const char* argv[]) {
 
     // check for flags
     DEBUG.value = argParser["d"];
-    CONSIDER_ERRORS.value = argParser["e"];
 
     // load robot from file
     std::vector<ArmSegment> arms;
@@ -75,9 +74,9 @@ int main(const int argc, const char* argv[]) {
     Robot ROBOT(arms);
 
     // load endpoint from file
-    std::vector<float> endPoint;
+    std::vector<float> desiredEndpoint;
     argParser(ENDPOINT_CONF.getArgument()) >> ENDPOINT_CONF.value;
-    loadEndpoint(ENDPOINT_CONF.value, endPoint);
+    loadEndpoint(ENDPOINT_CONF.value, desiredEndpoint);
 
     // check for values
     argParser(NUMBER_OF_RUNS.getArgument(), NUMBER_OF_RUNS.getDefValue()) >> NUMBER_OF_RUNS.value;
@@ -90,82 +89,47 @@ int main(const int argc, const char* argv[]) {
     argParser(CNT_PROBE_LIMIT.getArgument(), CNT_PROBE_LIMIT.getDefValue()) >> CNT_PROBE_LIMIT.value;
     argParser(TIME_LIMIT.getArgument(), TIME_LIMIT.getDefValue()) >> TIME_LIMIT.value;
 
-    DifferentialEvolutionAlgorithm algorithm(ROBOT,
-                                             POPULATION_SIZE.value,
-                                             MAX_GENERATION.value,
-                                             CROSSOVER_RATE.value,
-                                             MUTATION_FACTOR.value,
-                                             CONSIDER_ERRORS.value,
-                                             SEED.value,
-                                             EPSILON_LIMIT.value,
-                                             CNT_PROBE_LIMIT.value,
-                                             TIME_LIMIT.value,
-                                             DEBUG.value);
+    DifferentialEvolutionAlgorithm DE_algorithm(ROBOT,
+                                      desiredEndpoint,
+                                      POPULATION_SIZE.value,
+                                      CROSSOVER_RATE.value,
+                                      MUTATION_FACTOR.value,
+                                      MAX_GENERATION.value,
+                                      CNT_PROBE_LIMIT.value,
+                                      EPSILON_LIMIT.value,
+                                      SEED.value);
 
-    // variables for overall average
-    float sumElapsed = 0;
-    float sumError = 0;
-    float sumPairWiseError = 0;
-
-    // variables for overall best individual of all runs
-    std::vector<float> overallBestIndividual;
-    float overallBestPairwiseError = std::numeric_limits<float>::max();
-    float overallBestError = std::numeric_limits<float>::max();
-    float overallBestElapsed;
-
-    for (int n = 0; n < NUMBER_OF_RUNS.value; n++) {
-        if (DEBUG.value)
-            std::cout << "======================== Run: " << n + 1 << " begins ========================" << std::endl;
-
-        clock_t begin = clock();
-        std::vector<float> result = algorithm.begin(endPoint, n);
-        clock_t end = clock();
-
-        float pairwiseError = algorithm.pairwiseFitnessFunction(result, nullptr);
-        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-        float error = algorithm.fitnessFunction(result, nullptr);
-
-        sumPairWiseError += pairwiseError;
-        sumElapsed += elapsed_secs;
-        sumError += error;
-
-        if (CONSIDER_ERRORS.value ? pairwiseError <= overallBestPairwiseError : error <= overallBestError) {
-            overallBestIndividual = result;
-            overallBestError = error;
-            overallBestPairwiseError = pairwiseError;
-            overallBestElapsed = elapsed_secs;
-        }
-
-        if (DEBUG.value) {
-            std::cout << "======================== Run: " << n + 1 << " results ========================" << std::endl;
-            printResults(error, pairwiseError, elapsed_secs);
-
-            std::string raw = "";
-            for (int i = 0; i < result.size(); i += 2) {
-                printf("\n Segment %d : %.2f° / %.2f mm", i / 2 + 1, result[i], result[i + 1]);
-
-                raw += std::to_string(result[i]) + "f," + std::to_string(result[i + 1]) + "f,";
-            }
-            std::cout << std::endl << std::endl << "raw data: " << raw << std::endl << std::endl;
-        }
-    }
-
-    std::cout << "======================= OVERALL AVERAGE =======================" << std::endl;
-    printResults(sumError / NUMBER_OF_RUNS.value, sumPairWiseError / NUMBER_OF_RUNS.value, sumElapsed / NUMBER_OF_RUNS.value);
-
-    std::cout << std::endl <<  "=============== OVERALL BEST INDIVIDUAL RESULTS ===============" << std::endl;
-    printResults(overallBestError, overallBestPairwiseError, overallBestElapsed);
-
-    std::stringstream raw;
-    for (int i = 0; i < overallBestIndividual.size(); i += 2) {
-        printf("\n Segment %d : %.2f° / %.2f mm", i / 2 + 1, overallBestIndividual[i], overallBestIndividual[i + 1]);
-
-        raw << std::fixed << std::setprecision(2) << overallBestIndividual[i] << "," ;
-        raw << std::fixed << std::setprecision(2) << overallBestIndividual[i+1] << "," ;
-    }
-    std::cout << std::endl << std::endl << "raw data: " << raw.str() << std::endl << std::endl;
+    startExperiment(DE_algorithm);
 
     return 0;
+}
+
+void startExperiment(DifferentialEvolutionAlgorithm algorithm) {
+    int successfulRuns = 0;
+
+    Result resultSum(0,0,0, std::vector<float>());
+    Result best(0, std::numeric_limits<float>::max(), 0, std::vector<float>());
+
+    for (int n = 0; n < NUMBER_OF_RUNS.value; n++) {
+        std::cout << "======================== Run: " << n + 1 << " ========================" << std::endl;
+        Result result = algorithm.begin(n);
+        result.print();
+
+        resultSum = resultSum + result;
+
+        if(result.error < EPSILON_LIMIT.value) successfulRuns++;
+        if(result.error < best.error) {
+            best = result;
+        }
+    }
+
+    std::cout << "===================== Success rate =====================" << std::endl;
+    std::cout << "> value: " << ((float) successfulRuns / (float) NUMBER_OF_RUNS.value)*100 << "%" << std::endl;
+
+    std::cout << "======================= Average ========================" << std::endl;
+    resultSum.getAverage(NUMBER_OF_RUNS.value);
+    std::cout << "========================= Best =========================" << std::endl;
+    best.print();
 }
 
 void showHelp() {
@@ -176,7 +140,6 @@ void showHelp() {
 
     std::cout << "Flags:" << std::endl;
     std::cout << "\t" << DEBUG.getArgument()            << " ~ " <<   DEBUG.getDescription()  << std::endl;
-    std::cout << "\t" << CONSIDER_ERRORS.getArgument()  << " ~ " <<   CONSIDER_ERRORS.getDescription()  << std::endl;
 
     std::cout << "Files:" << std::endl;
     std::cout << "\t* " << ROBOT_CONF.getArgument()            << " ~ " <<   ROBOT_CONF.getDescription() << std::endl;

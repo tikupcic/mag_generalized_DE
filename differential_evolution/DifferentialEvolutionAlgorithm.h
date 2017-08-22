@@ -7,21 +7,28 @@
 
 #include <random>
 #include "../entities/Robot.h"
+#include "../entities/Result.h"
 
 class DifferentialEvolutionAlgorithm {
 
 private:
+    // problem
     Robot ROBOT;
+    std::vector<float> endpointB;
 
-    const int POPULATION_SIZE;        // NP
-    const int MAX_GENERATION;         // Gmax
-    const int DIMENSION;              // D
-    const float CROSSOVER_RATE;       // C
-    const float MUTATION_FACTOR;      // F
+    // krmilni parametri
+    const int Np;
+    const float Cr;
+    const float F;
 
-    const bool considerErrors;
-    const bool debugMode;
+    //termination variables
+    const int Gmax;
+    const int cntProbeLmt;
+    const float desiredError;
+
+    //misc
     const unsigned long seed;
+    const int D;
 
     std::vector<float> min_bounds;
     std::vector<float> max_bounds;
@@ -29,35 +36,28 @@ private:
     std::default_random_engine random_engine;
     std::uniform_real_distribution<double> RANDOM_0_1;
     std::uniform_int_distribution<int> RANDOM_0_NP;
+    std::uniform_real_distribution<double> RANDOM_0_N;
 
     std::vector<std::vector<float>> population;
-    std::vector<std::vector<float>> donor_vectors;
-    std::vector<std::vector<float>> trial_vectors;
-    std::vector<float> wantedEndpoint;
 
     std::vector<float> bestIndividual;
 
-    //termination variables
-    const float term_epsilonLimit;
-    const int term_cntProbeLimit;
-    const double term_runtimeLimit;
-
 public:
-    DifferentialEvolutionAlgorithm(const Robot &ROBOT, const int POPULATION_SIZE, const int MAX_GENERATION, const float CROSSOVER_RATE, const float MUTATION_FACTOR,
-                                   const bool considerErrors, const unsigned long seed, const float term_epsilonLimit,
-                                   const int term_cntProbeLimit, const double term_runtimeLimit, const bool debugMode);
-
-    float setInitialIndividualValue(const int index);
-
-    float fitnessFunction(std::vector<float> vector, int *cntProbe);
-
-    float pairwiseFitnessFunction(std::vector<float> vector, int *cntProbe);
+    DifferentialEvolutionAlgorithm(const Robot &ROBOT, const std::vector<float> &endpointB, const int Np,
+                                   const float Cr, const float F, const int Gmax, const int cntProbeLmt,
+                                   const float desiredError, const unsigned long seed);
 
     void initialize(const int runNumber);
 
-    bool shouldTerminate(int generation, float epsilon, clock_t runtime, int cntProbe);
+    float setInitialIndividualValue(const int index);
 
-    std::vector<float> begin(std::vector<float> wantedEndpoint, const int runNumber);
+    Result begin(const int runNumber);
+
+    float fitnessFunction(std::vector<float> vector, int *cntProbe);
+
+    bool shouldContinue(int generation, int cntProbe, float error);
+
+
 };
 
 #endif //MAG_DE_OPTIMIZEDDE_H
